@@ -20,7 +20,7 @@
           <div class="rightPanelHead"><h3 class="panelH3">Notifications</h3></div>
           <div class="rightPanelBody">
             <p>Your Nick: <span id="myNick">?</span> 
-              <span>Colour: </span id="colour"><span>#000000</span></p>
+              <span>Colour: </span id="colour"><span>#ffffff</span></p>
             <ul class="notificationList" id="notifications"></ul>
           </div>
         </div>
@@ -54,6 +54,7 @@
           socket.emit('nick colour', {'nick':$('#myNick').val(),
           'colour': mSplit[1]});
            $('#colour').text(mSplit[1]);
+           $('#colour').val(mSplit[1]);
         } else if (mSplit[0] === '/login' && msplit.length === 2){
           socket.emit('nick login', {'nick':$('#myNick').val(), 'nickL':mSplit[1]});
         } else if (mSplit[0] === '/start'){
@@ -61,11 +62,16 @@
           let nic = (Math.random() + 1).toString(36).substring(7);
           console.log("starting: ", nic);
           socket.emit('start', nic);
-           $('#myNick').text(msg);
+           $('#myNick').val(nic);
+           $('#myNick').text(nic);
+           $('#colour').val('#ffffff');
+           $('#colour').text('#ffffff');
+           console.log("sending cstart.. colour.txt: ", $('#colour').text());
+          console.log("sending start.. colour.val: ", $('#colour').val());
         } else {
-          socket.emit('chat message', {'nick':$('#myNick').val(),
-          'msg': message, 'colour':$('#colour').val()}
-          );
+          console.log("sending chat msg.. colour.txt: ", $('#colour').text());
+          console.log("sending chat msg.. colour.val: ", $('#colour').val());
+          socket.emit('chat message', {'nick':$('#myNick').val(), 'msg': message, 'colour':$('#colour').val()});
         }
         $('#m').val('');
         return false;
@@ -73,6 +79,7 @@
       //Displaying chat messages. MSG format {nick, msg, colour}
       socket.on('chat message', function(msg){
         let fullmsg = msg['time']+" "+msg['nick']+': '+msg['msg'];
+        console.log("msg: ", msg);
         if (msg['nick'] === $('#myNick').val()){
           $('#messages').append($('<li>').text(fullmsg.bold().fontcolor(msg['colour'])));
         } else {
@@ -81,11 +88,14 @@
 
       socket.on($('#myNick').val()+' nick', function(msg){
         $('#myNick').text(msg);
+        $('#myNick').val(msg);
       });
 
       socket.on($('#myNick').val()+' login success', function(msg){
         $('#myNick').text(msg['nick']);
-        $('#colour').text(msg['colour']);
+        $('#myNick').val(msg['nick']);
+        $('#colour').text(msg['colour']); 
+        $('#colour').val(msg['colour']);
          $('#messages').text(msg['msgs']);
       });
 
@@ -101,11 +111,15 @@
       socket.on($('#myNick').val()+' notification', function(m){
         $('#notifications').append($('<li>').text(m));
       });
+       socket.on($('#myNick').val()+' colour', function(m){
+        $('#colour').val(m);
+           $('#colour').text(m);
+      });
       socket.on('notification', function(m){
         $('#notifications').append($('<li>').text(m));
       });
 
-      socket.on('disconnect', function(list){
+   /*   socket.on('disconnect', function(list){
         //send Messages, nick, and colour
         let final = {
           'nick': $('#myNick').text(),
@@ -113,7 +127,7 @@
           'colour': $('#colour').text()
         };
         socket.emit('exit', final);
-      });
+      });*/
 
     });
       });

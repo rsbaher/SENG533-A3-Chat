@@ -4,11 +4,11 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var path = require('path');
 let Nicks = ['','','','',''];
-let Colours = ['','','','',''];
-let ChatHistory = [{'nick':'test1', 'msgs':'', 'colour':'#000000'},
+let Colours = ['#ffffff','#ffffff','#ffffff','#ffffff','#ffffff'];
+let ChatHistory = [{'nick':'test1', 'msgs':'', 'colour':'#ffffff'},
 {'nick':'test2', 'msgs':'', 'colour':'white'},
-{'nick':'test3', 'msgs':'', 'colour':'#000000'},
-{'nick':'test4', 'msgs':'', 'colour':'#000000'}]
+{'nick':'test3', 'msgs':'', 'colour':'#ffffff'},
+{'nick':'test4', 'msgs':'', 'colour':'#ffffff'}]
 app.use(express.static(path.join(__dirname, '/')));
 
 app.get('/', function(req, res){
