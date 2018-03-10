@@ -18,35 +18,16 @@ http.listen(3000, function(){
   console.log('listening on *:3000');
 });
 
-Con1 = io.connect('localhost:3000', {resource: 'con1/socket.io', 'force new connection': true}); 
+/*Con1 = io.connect('localhost:3000', {resource: 'con1/socket.io', 'force new connection': true}); 
 Con2 = io.connect('localhost:3000', {resource: 'con2/socket.io', 'force new connection': true}); 
 Con3 = io.connect('localhost:3000', {resource: 'con3/socket.io', 'force new connection': true}); 
 Con4 = io.connect('localhost:3000', {resource: 'con4/socket.io', 'force new connection': true});
 Con5 = io.connect('localhost:3000', {resource: 'con4/socket.io', 'force new connection': true});
-let Connections = [Con1,Con2,Con3,Con4,Con5];
+let Connections = [Con1,Con2,Con3,Con4,Con5];*/
 
 //Function to randomly determin nick
-function setNick(con, i){
-	let nic = (Math.random() + 1).toString(36).substring(7); 
-	while (nic in Nicks) {
-  		nic = (Math.random() + 1).toString(36).substring(7);
-
-  		let match = false;
-  		if (ChatHistory.length > 0){
-  			let i = 0;
-  			while(i<ChatHistory.length){
-  				if(ChatHistory[i]['nick'] === nic){
-  					match = true;
-  					break;
-  				}
-  			}
-  		}
-
-  		if (match) {continue;}
-  	}
-
+function setNick(nic, i){
   	Nicks[i] = nic;
-  	con.emit('nick', nic);
   	console.log('a user connected: '+nic);
 }
 
@@ -66,27 +47,26 @@ function isNickInHistory(nick){
 	return -1;
 }
 
-function getCon(nick){
-	return Connections[getNickPosition(nick)];
-}
+
 
 io.on('connection', function(socket){
   //Assign unique Nick to empty connection
-  let found = false; 
-  let i = 0;
-  while (!found || i < 5){
-  	if (Nicks[i] == ''){
-  		setNick(Connections[i], i)
-  		found = true;
-  		break;
+ 
+  socket.on('start', function(msg){
+  	let i = 0;
+  	while (i < 5){
+  		if (Nicks[i] == ''){
+  			setNick(msg, i)
+  			break;
+  		}
+  		i = i +1;
   	}
-  	i = i +1;
-  }
-  console.log('Nicks: ', Nicks);
-  //Send all nicks to every connection
-  io.emit('online users', {'n':Nicks, 'c':Colours})
-  io.emit('notification', "New User Connected!");
-
+  	console.log('Nicks: ', Nicks);
+  	//Send all nicks to every connection
+  	io.emit('online users', {'n':Nicks, 'c':Colours})
+  	io.emit('notification', "New User Connected!");
+  });
+  
   socket.on('chat message', function(msg){
     console.log('message: ', msg);
     let dnow = new Date(Date.now())
@@ -106,7 +86,7 @@ io.on('connection', function(socket){
   	let newNick = msg['newNick'];
   	let index = getNickPosition(old);
   	let histIndx = isNickInHistory(old);
-  	let con = Connections[index];
+  
   	if (histIndx !== -1){
   		ChatHistory[i]['nick'] = newNick
   	}
@@ -114,14 +94,13 @@ io.on('connection', function(socket){
   	//broadcast Nicks list and colours
   	socket.emit('online users', {'n':Nicks, 'c':Colours});
   	// send notification
-  	con.emit('nick', newNick);
+  	socket.emit(old+' nick', newNick);
   });
 
   socket.on('nick login', function(msg){
   	//find nick in history
   	let currNick = msg['nick'];
   	let currNickIndex = getNickPosition(currNick);
-  	let con = Connections[currNickIndex];
   	let LogNick = msg['nickL'];
   	let histIndx = isNickInHistory(LogNick);
   	let m = '';
@@ -130,12 +109,14 @@ io.on('connection', function(socket){
   		Nicks[currNickIndex] = LogNick;
   		socket.emit('online users', {'n':Nicks, 'c':Colours});
   		// send notification
-  		con.emit('login success', ChatHistory[histIndx]);
+  		socket.emit(currNick+' login success', ChatHistory[histIndx]);
   		m = "Successful Login with: "+LogNick;
+  		socket.emit(currNick+' notification', m);
   	} else {
   		m = "Could not login with nick: "+LogNick;
+  		socket.emit(currNick+' notification', m);
   	}
-  	con.emit('notification', m);
+  	
   	
   });
 
@@ -143,15 +124,14 @@ io.on('connection', function(socket){
   	//find nick and get index
   	let index = getNickPosition(msg['nick']);
   	let col = msg['colour'];
-  	let con = Connections[index];
   	//replace colour at index
   	Colours[index] = col;
   	//Broadcast Nicks and Colours
   	socket.emit('online users', {'n':Nicks, 'c':Colours});
-  	con.emit('colour', col);
+  	socket.emit(msg['nick']+' colour', col);
   	// send notification
   	let m = "Changed Colour to: "+col;
-  	con.emit('notification', m);
+  	socket.emit(msg['nick']+' notification', m);
   });
 
   socket.on('disconnect', function(){
