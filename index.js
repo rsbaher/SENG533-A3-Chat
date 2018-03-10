@@ -2,13 +2,14 @@ var app = require('express')();
 var express = require('express');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var path = require('path');
 let Nicks = ['','','','',''];
 let Colours = ['','','','',''];
 let ChatHistory = [{'nick':'test1', 'msgs':'', 'colour':'#000000'},
 {'nick':'test2', 'msgs':'', 'colour':'white'},
 {'nick':'test3', 'msgs':'', 'colour':'#000000'},
 {'nick':'test4', 'msgs':'', 'colour':'#000000'}]
-app.use(express.static  -09
+app.use(express.static(path.join(__dirname, '/')));
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -54,8 +55,19 @@ function getNickPosition(nick){
 	return Nicks.indexOf(nick);
 }
 
+// -1 means not in history
 function isNickInHistory(nick){
 	let i = 0;
+	while (i < ChatHistory.length){
+		if (ChatHistory[i]['nick'] === nick){
+			return i;
+		}
+	}
+	return -1;
+}
+
+function getCon(nick){
+	return Connections[getNickPosition(nick)];
 }
 
 io.on('connection', function(socket){
@@ -73,6 +85,7 @@ io.on('connection', function(socket){
   console.log('Nicks: ', Nicks);
   //Send all nicks to every connection
   io.emit('online users', {'n':Nicks, 'c':Colours})
+  io.emit('notification', "New User Connected!");
 
   socket.on('chat message', function(msg){
     console.log('message: ', msg);
@@ -89,21 +102,56 @@ io.on('connection', function(socket){
 
   socket.on('nick change', function(msg){
   	//find nick and replace with newNick if unique
+  	let old = msg['nick'];
+  	let newNick = msg['newNick'];
+  	let index = getNickPosition(old);
+  	let histIndx = isNickInHistory(old);
+  	let con = Connections[index];
+  	if (histIndx !== -1){
+  		ChatHistory[i]['nick'] = newNick
+  	}
+  	Nicks[index] = newNick
   	//broadcast Nicks list and colours
+  	socket.emit('online users', {'n':Nicks, 'c':Colours});
   	// send notification
+  	con.emit('nick', newNick);
   });
 
   socket.on('nick login', function(msg){
   	//find nick in history
-  	//broadcast Nicks list and colours
-  	// send notification
+  	let currNick = msg['nick'];
+  	let currNickIndex = getNickPosition(currNick);
+  	let con = Connections[currNickIndex];
+  	let LogNick = msg['nickL'];
+  	let histIndx = isNickInHistory(LogNick);
+  	let m = '';
+  	if (histIndx !== -1){
+  		//broadcast Nicks list and colours
+  		Nicks[currNickIndex] = LogNick;
+  		socket.emit('online users', {'n':Nicks, 'c':Colours});
+  		// send notification
+  		con.emit('login success', ChatHistory[histIndx]);
+  		m = "Successful Login with: "+LogNick;
+  	} else {
+  		m = "Could not login with nick: "+LogNick;
+  	}
+  	con.emit('notification', m);
+  	
   });
 
   socket.on('nick colour', function(msg){
   	//find nick and get index
+  	let index = getNickPosition(msg['nick']);
+  	let col = msg['colour'];
+  	let con = Connections[index];
   	//replace colour at index
+  	Colours[index] = col;
   	//Broadcast Nicks and Colours
+  	socket.emit('online users', {'n':Nicks, 'c':Colours});
+  	con.emit('colour', col);
   	// send notification
+  	let m = "Changed Colour to: "+col;
+  	con.emit('notification', m);
   });
 
   socket.on('disconnect', function(){
@@ -114,10 +162,18 @@ io.on('connection', function(socket){
   socket.on('exit', function(msg){
   	let nickToErase = msg['nick'];
   	//find nick in Nicks and history
-
-  	//store messages and nick and colour
-  	ChatHistory.push(msg)
-    console.log('user disconnected');
+  	let histIndx = isNickInHistory(nickToErase);
+  	//Update info
+  	if (histIndx !== -1){
+  		ChatHistory[histIndx]['colour'] = msg['colour'];
+  		ChatHistory[histIndx]['msgs'] = msg['msgs'];
+  	} else{
+  		//store messages and nick and colour
+  		ChatHistory.push(msg);
+  	}
+  	let i = getNickPosition(nickToErase);
+  	Nicks[i] = '';
+    console.log('user exited');
   });
 
 });

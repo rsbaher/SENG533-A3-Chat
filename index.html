@@ -55,7 +55,7 @@
           'colour': mSplit[1]});
            $('#colour').text(mSplit[1]);
         } else if (mSplit[0] === '/login' && msplit.length === 2){
-          socket.emit('nick login', {'nick':mSplit[1]});
+          socket.emit('nick login', {'nick':$('#myNick').val(), 'nickL':mSplit[1]});
         } else {
           socket.emit('chat message', {'nick':$('#myNick').val(),
           'msg': message, 'colour':$('#colour').text()});
@@ -91,7 +91,9 @@
          $('#messages').append($('<li>').text(nicks[i].fontcolor(colours[i])));
         }
       });
-
+      socket.on('notification', function(m){
+        $('#notifications').append($('<li>').text(m));
+      });
       socket.on('disconnect', function(list){
         //send Messages, nick, and colour
         let final = {
