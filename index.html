@@ -20,7 +20,7 @@
           <div class="rightPanelHead"><h3 class="panelH3">Notifications</h3></div>
           <div class="rightPanelBody">
             <p>Your Nick: <span id="myNick">?</span> 
-              <span>Colour: </span id="colour"><span>#ffffff</span></p>
+              <span>Colour: </span><span id="colour">#fff</span></p>
             <ul class="notificationList" id="notifications"></ul>
           </div>
         </div>
@@ -64,10 +64,12 @@
           socket.emit('start', nic);
            $('#myNick').val(nic);
            $('#myNick').text(nic);
-           $('#colour').val('#ffffff');
-           $('#colour').text('#ffffff');
-           console.log("sending cstart.. colour.txt: ", $('#colour').text());
+           $('#colour').val("#ffffff");
+           $('#colour').text("#ffffff");
+          console.log("sending start.. colour.txt: ", $('#colour').text());
           console.log("sending start.. colour.val: ", $('#colour').val());
+          console.log("sending start.. nic.txt: ", $('#myNick').text());
+          console.log("sending start.. nic.val: ", $('#myNick').val());
         } else {
           console.log("sending chat msg.. colour.txt: ", $('#colour').text());
           console.log("sending chat msg.. colour.val: ", $('#colour').val());
