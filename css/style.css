@@ -22,13 +22,14 @@ form {
 
 form input { 
 	border: 0; 
-	padding: 10px; 
+	padding: 1%; 
 	width: 90%; 
 	margin-right: 0.5%; 
 }
 
 form button { 
-	width: 9%; 
+	width: 8%;
+	height: 90%; 
 	background: rgb(130, 224, 255); 
 	border: none; 
 	padding: 1%; 
@@ -60,11 +61,15 @@ form button {
   border-collapse: collapse;
   background: #000;
   border-color: blue;
+  position: relative;
+  display: inline-block;
+  overflow: auto;
 }
 
 .rightPanel {
   width: 30%;
   height: 100%;
+  color: black;
   position: relative;
   float: right;
   border-collapse: collapse;
@@ -74,6 +79,33 @@ form button {
 
 .divPanel {
 	width: 100%;
+	overflow: auto;
+	display: inline-block;
+}
+.notificationList {
+	display: inline-block;
+	height: 100%;
+	width:100%;
+}
+.usersList {
+	display: inline-block;
+	height: 100%;
+	width:100%;
+}
+.panelH3 {
+	padding:1%;
+	height:10%;
+	width:100%;
+}
+.rightPanelBody {
+	height: 90%;
+	width:100%;
+	padding:1%;
+}
+.rightPanelHead {
+	height: 10%;
+	width:100%;
+	padding: 2%;
 }
 .height50 {
 	height: 50%;
@@ -81,12 +113,19 @@ form button {
 .rounded {
 	border-radius: 8px;
 }
+.icon{
+	height: 80%;
+}
 
 #messages { 
 	list-style-type: none; 
 	margin: 0; 
-	padding: 0; 
+	padding-bottom: 10%; 
 	height:90%;
+	position: absolute;
+	bottom: 0;
+	display: inline-block;
+	vertical-align: bottom;
 }
 #messages li { 
 	padding: 5px 10px; 
@@ -96,5 +135,5 @@ form button {
 	/*rgba(229, 229, 229, 0.5);*/ 
 }
 #messages li:nth-child(even) { 
-	background: rgba(130, 224, 255, 0.6); 
+	background: rgba(130, 224, 255, 0.7); 
 }
