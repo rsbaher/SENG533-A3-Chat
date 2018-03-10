@@ -51,11 +51,13 @@ function isNickInHistory(nick){
 
 io.on('connection', function(socket){
   //Assign unique Nick to empty connection
- 
+ console.log("Attempting to Connect");
   socket.on('start', function(msg){
   	let i = 0;
   	while (i < 5){
+  		console.log("nick array: ", i);
   		if (Nicks[i] == ''){
+  			console.log("setting nick: ", msg);
   			setNick(msg, i)
   			break;
   		}
